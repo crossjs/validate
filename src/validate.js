@@ -7,7 +7,8 @@ define(function (require, exports, module) {
 
 'use strict';
 
-var Util = require('util'),
+var $ = require('$'),
+  Util = require('util'),
   Class = require('class'),
 
   Config = require('./config');

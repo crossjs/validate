@@ -5,6 +5,10 @@ define(function (require, exports, module) {
  * @module Validate
  */
 
+'use strict';
+
+var $ = require('$');
+
 var Config = {
   elements: ['select', 'option', ':checkbox', ':radio', 'textarea', ':text', ':password', ':file'],
   attributes: ['required', 'minlength', 'maxlength', 'min', 'max', 'digits', 'number', 'url', 'equalto', 'minto', 'maxto', 'remote'],

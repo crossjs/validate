@@ -1,8 +1,10 @@
-define("crossjs/validate/0.0.1/config-debug", [], function(require, exports, module) {
+define("crossjs/validate/0.0.1/config-debug", [ "$-debug" ], function(require, exports, module) {
     /**
  * 基础库
  * @module Validate
  */
+    "use strict";
+    var $ = require("$-debug");
     var Config = {
         elements: [ "select", "option", ":checkbox", ":radio", "textarea", ":text", ":password", ":file" ],
         attributes: [ "required", "minlength", "maxlength", "min", "max", "digits", "number", "url", "equalto", "minto", "maxto", "remote" ],

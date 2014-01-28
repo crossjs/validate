@@ -1,10 +1,10 @@
-define("crossjs/validate/0.0.1/validate-debug", [ "crossjs/util/0.0.1/util-debug", "crossjs/class/0.0.3/class-debug", "$-debug", "crossjs/class/0.0.3/super-debug", "./config-debug" ], function(require, exports, module) {
+define("crossjs/validate/0.0.1/validate-debug", [ "$-debug", "crossjs/util/0.0.1/util-debug", "crossjs/class/0.0.3/class-debug", "crossjs/class/0.0.3/super-debug", "./config-debug" ], function(require, exports, module) {
     /**
  * Validate库
  * @module Validate
  */
     "use strict";
-    var Util = require("crossjs/util/0.0.1/util-debug"), Class = require("crossjs/class/0.0.3/class-debug"), Config = require("./config-debug");
+    var $ = require("$-debug"), Util = require("crossjs/util/0.0.1/util-debug"), Class = require("crossjs/class/0.0.3/class-debug"), Config = require("./config-debug");
     var validateElems = Config.elements.join(","), validateAttrs = Config.attributes, validateRules = Config.rules, errorMessages = Config.messages;
     /**
  * Validate
