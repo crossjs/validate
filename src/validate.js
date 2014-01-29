@@ -8,10 +8,22 @@ define(function (require, exports, module) {
 'use strict';
 
 var $ = require('$'),
-  Util = require('util'),
   Class = require('class'),
 
   Config = require('./config');
+
+var htmldecode = function (value) {
+  var replacements = {
+    '&lt;': '<',
+    '&gt;': '>',
+    '&amp;': '&',
+    '&quot;': '"',
+    '&apos;': '\''
+  };
+  return value.replace(/&(?:lt|gt|amp|quot|apos);/g, function(character) {
+    return replacements[character];
+  });
+};
 
 var validateElems = Config.elements.join(','),
   validateAttrs = Config.attributes,
@@ -296,7 +308,7 @@ var Validate = new Class({
 
     placeholder = help.data('placeholder');
     if (placeholder) {
-      help.html(Util.htmldecode(placeholder));
+      help.html(htmldecode(placeholder));
     } else {
       help.empty();
     }

@@ -1,4 +1,4 @@
-define("crossjs/validate/0.0.1/config-debug", [ "$-debug" ], function(require, exports, module) {
+define("crossjs/validate/0.0.2/config-debug", [ "$-debug" ], function(require, exports, module) {
     /**
  * 基础库
  * @module Validate

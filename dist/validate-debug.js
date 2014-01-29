@@ -1,10 +1,22 @@
-define("crossjs/validate/0.0.1/validate-debug", [ "$-debug", "crossjs/util/0.0.1/util-debug", "crossjs/class/0.0.3/class-debug", "crossjs/class/0.0.3/super-debug", "./config-debug" ], function(require, exports, module) {
+define("crossjs/validate/0.0.2/validate-debug", [ "$-debug", "crossjs/class/0.0.5/class-debug", "crossjs/class/0.0.5/super-debug", "./config-debug" ], function(require, exports, module) {
     /**
  * Validate库
  * @module Validate
  */
     "use strict";
-    var $ = require("$-debug"), Util = require("crossjs/util/0.0.1/util-debug"), Class = require("crossjs/class/0.0.3/class-debug"), Config = require("./config-debug");
+    var $ = require("$-debug"), Class = require("crossjs/class/0.0.5/class-debug"), Config = require("./config-debug");
+    var htmldecode = function(value) {
+        var replacements = {
+            "&lt;": "<",
+            "&gt;": ">",
+            "&amp;": "&",
+            "&quot;": '"',
+            "&apos;": "'"
+        };
+        return value.replace(/&(?:lt|gt|amp|quot|apos);/g, function(character) {
+            return replacements[character];
+        });
+    };
     var validateElems = Config.elements.join(","), validateAttrs = Config.attributes, validateRules = Config.rules, errorMessages = Config.messages;
     /**
  * Validate
@@ -232,7 +244,7 @@ define("crossjs/validate/0.0.1/validate-debug", [ "$-debug", "crossjs/util/0.0.1
             wrap.removeClass("has-error");
             placeholder = help.data("placeholder");
             if (placeholder) {
-                help.html(Util.htmldecode(placeholder));
+                help.html(htmldecode(placeholder));
             } else {
                 help.empty();
             }
