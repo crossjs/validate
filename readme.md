@@ -20,5 +20,6 @@
 
 ##history
 
+- 0.1.0 - remove `jQuery`, supports`zepto`
 - 0.0.2 - remove dependency `util`, update `class` to `0.0.5`
 - 0.0.1 - init

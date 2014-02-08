@@ -63,6 +63,7 @@ var Validate = new Class({
         novalidate: 'novalidate'
       })
       .on('submit', function (e) {
+        // e.preventDefault();
         if (self.submitted) {
           // 判断是否等待异步
           self.checkPending();
@@ -154,7 +155,7 @@ var Validate = new Class({
     // 验证属性
     $.each(validateAttrs, function (index, rule) {
       var prop = elem.attr(rule);
-      if (prop !== undefined) {
+      if (prop !== undefined && prop !== null && prop !== '') {
         prop = isNaN(prop) ? prop : +prop;
         valid = self.checkRule(name, rule, elem, value, prop);
         if (!valid) {

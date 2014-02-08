@@ -1,4 +1,4 @@
-define("crossjs/validate/0.0.2/config-debug", [ "$-debug" ], function(require, exports, module) {
+define("crossjs/validate/0.1.0/config-debug", [ "$-debug" ], function(require, exports, module) {
     /**
  * 基础库
  * @module Validate
@@ -6,7 +6,7 @@ define("crossjs/validate/0.0.2/config-debug", [ "$-debug" ], function(require, e
     "use strict";
     var $ = require("$-debug");
     var Config = {
-        elements: [ "select", "option", ":checkbox", ":radio", "textarea", ":text", ":password", ":file" ],
+        elements: [ "select", "option", 'input[type="checkbox"]', 'input[type="radio"]', "textarea", 'input[type="text"]', 'input[type="password"]', 'input[type="file"]' ],
         attributes: [ "required", "minlength", "maxlength", "min", "max", "digits", "number", "url", "equalto", "minto", "maxto", "remote" ],
         rules: {
             required: function(elem, value) {
@@ -17,7 +17,7 @@ define("crossjs/validate/0.0.2/config-debug", [ "$-debug" ], function(require, e
                     if (name) {
                         return !!$(elem.prop("form")).find('[name="' + name + '"]:checked').length;
                     }
-                    return elem.is(":checked");
+                    return elem.is('input[type="checkbox"]');
                 }
                 return /\S/.test(value);
             },

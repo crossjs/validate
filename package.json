@@ -1,6 +1,6 @@
 {
   "name": "validate",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "form validator",
   "keywords": [ "validate", "seajs", "modules" ],
   "homepage": "https://github.com/crossjs/validate",
@@ -47,7 +47,7 @@
     "output": [ "validate.js" ],
     "alias": {
       "$": "$",
-      "class": "crossjs/class/0.0.5/class"
+      "class": "crossjs/class/0.1.0/class"
     }
   }
 }

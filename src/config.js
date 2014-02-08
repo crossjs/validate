@@ -10,7 +10,7 @@ define(function (require, exports, module) {
 var $ = require('$');
 
 var Config = {
-  elements: ['select', 'option', ':checkbox', ':radio', 'textarea', ':text', ':password', ':file'],
+  elements: ['select', 'option', 'input[type="checkbox"]', 'input[type="radio"]', 'textarea', 'input[type="text"]', 'input[type="password"]', 'input[type="file"]'],
   attributes: ['required', 'minlength', 'maxlength', 'min', 'max', 'digits', 'number', 'url', 'equalto', 'minto', 'maxto', 'remote'],
   rules: {
     required: function(elem, value) {
@@ -21,7 +21,7 @@ var Config = {
         if (name) {
           return !!$(elem.prop('form')).find('[name="' + name + '"]:checked').length;
         }
-        return elem.is(':checked');
+        return elem.is('input[type="checkbox"]');
       }
       return (/\S/).test(value);
     },
