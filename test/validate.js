@@ -14,27 +14,40 @@ define(function (require, exports) {
           '</div>')
         .appendTo('#qunit-fixture'),
       input = form.find('input'),
+      valid,
       validate = new Validate({
-          form: form
+          form: form,
+          on: {
+            valid: function () {
+              valid = true;
+            },
+            error: function () {
+              valid = false;
+            }
+          }
         });
     form.submit();
     equal( form.find('.help-block').text(), '此项必填', '' );
     equal( validate.isValid(), false, '' );
+    equal( valid, false, '' );
 
     input.val('1');
     form.submit();
     equal( form.find('.help-block').text(), '请输入至少3个字符', '' );
     equal( validate.isValid(), false, '' );
+    equal( valid, false, '' );
 
     input.val('12345');
     form.submit();
     equal( form.find('.help-block').text(), '', '' );
     equal( validate.isValid(), true, '' );
+    equal( valid, true, '' );
 
     input.val('123456');
     form.submit();
     equal( form.find('.help-block').text(), '最多输入5个字符', '' );
     equal( validate.isValid(), false, '' );
+    equal( valid, false, '' );
 
     form.remove();
   });

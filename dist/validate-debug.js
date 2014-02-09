@@ -51,6 +51,10 @@ define("crossjs/validate/0.1.0/validate-debug", [ "$-debug", "crossjs/class/0.1.
                 }
                 return false;
             });
+            // 事件订阅
+            if ($.isPlainObject(options.on)) {
+                self.on(options.on);
+            }
             if (options.eventType) {
                 self.initElements(options.eventType);
             }
@@ -86,10 +90,10 @@ define("crossjs/validate/0.1.0/validate-debug", [ "$-debug", "crossjs/class/0.1.
             if (this.pending === 0) {
                 this.submitted = false;
                 if (this.isValid()) {
-                    this.fire("valid", this);
+                    this.fire("valid");
                 } else {
                     this.focusError();
-                    this.fire("error", this);
+                    this.fire("error");
                 }
             }
         },
