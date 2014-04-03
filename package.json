@@ -1,6 +1,6 @@
 {
   "name": "validate",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "form validator",
   "keywords": [ "validate", "seajs", "modules" ],
   "homepage": "https://github.com/crossjs/validate",
@@ -32,22 +32,23 @@
   },
   "devDependencies": {
     "grunt": "*",
+    "grunt-cmd-transport": "*",
+    "grunt-cmd-concat": "*",
     "grunt-contrib-clean": "*",
     "grunt-contrib-copy": "*",
     "grunt-contrib-jshint": "*",
-    "grunt-contrib-qunit": "*",
     "grunt-contrib-uglify": "*",
     "grunt-contrib-yuidoc": "*",
-    "grunt-cmd-transport": "*",
-    "grunt-cmd-concat": "*",
+    "grunt-coveralls": "*",
+    "grunt-qunit-istanbul": "*",
     "matchdep": "*"
   },
-  "family": "crossjs",
+  "family": "pandora",
   "spm": {
     "output": [ "validate.js" ],
     "alias": {
       "$": "$",
-      "class": "crossjs/class/0.1.0/class"
+      "widget": "pandora/widget/1.0.0/widget"
     }
   }
 }

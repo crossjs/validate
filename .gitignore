@@ -1,3 +1,7 @@
-sea-modules
-node_modules
-gh-pages
+.svn
+.DS_Store
+/dist
+/gh-pages
+/node_modules
+/report
+/sea-modules

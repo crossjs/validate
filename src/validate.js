@@ -36,13 +36,9 @@ var validateElems = Config.elements.join(','),
  * @class Validate
  * @constructor
  */
-var Validate = new Class({
+var Validate = Widget.extend({
 
-  /**
-   * 构造函数
-   * @method __construct
-   */
-  __construct: function (options) {
+  setup: function () {
     var self = this,
       form = $(options.form);
 
@@ -86,6 +82,7 @@ var Validate = new Class({
   /**
    * 初始化表单元素事件绑定
    * @method initElements
+   * @param {String} eventType 事件类型
    */
   initElements: function (eventType) {
     var self = this;
