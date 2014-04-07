@@ -25,27 +25,106 @@
       ],
       'alias': {
         '$': 'jquery',
-        'widget': 'pandora/widget/1.0.0/widget'
+        'validate': 'pandora/validate/1.0.0/validate'
       }
     });
 
-    seajs.use(['../src/validate'], function (Validate) {
+    seajs.use(['validate'], function (Validate) {
 
       'use strict';
 
       QUnit.start();
 
-      module('Module Validate');
-      test('new Validate({})', function() {
-        var form = $('<form/>')
+      asyncTest('sync and async, all valid', function() {
+        var form = $('<form action="/" target="_blank"/>')
             .html('<div class="form-group">' +
-              '<input type="text" required minlength="3" maxlength="5">' +
+                '<input type="text" name="test" required pattern="^\\\w+$" minlength="3" maxlength="5">' +
+                '<input type="submit">' +
               '</div>')
-            .appendTo('#qunit-fixture'),
-          input = form.find('input'),
+            .prependTo('#qunit-fixture'),
+          input = form.find(':text'),
           valid,
           validate = new Validate({
               element: form,
+              customRules: {
+                test: {
+                  async: function (callback) {
+                    var self = this;
+
+                    setTimeout(function () {
+                      callback.call(self, true);
+                    }, 100);
+                  },
+                  other: function () {
+                    return true;
+                  }
+                }
+              },
+              customMessages: {
+                test: {
+                  async: 'async',
+                  other: 'other'
+                }
+              },
+              events: {
+                valid: function () {
+                  valid = true;
+                  // defaults:
+                  // this.element.submit();
+                },
+                error: function () {
+                  valid = false;
+                }
+              }
+            });
+
+        input.val('12345');
+        form.submit();
+        equal( form.find('.help-block').text(), '', '' );
+        equal( validate.state(), Validate.STATE.PENDING, '' );
+        equal( valid, undefined, '' );
+
+        setTimeout(function () {
+          equal( form.find('.help-block').text(), '', '' );
+          equal( validate.state(), Validate.STATE.VALID, '' );
+          equal( valid, true, '' );
+          start();
+        }, 200);
+
+        form.remove();
+      });
+
+      asyncTest('sync and async, all error', function() {
+        var form = $('<form/>')
+            .html('<div class="form-group">' +
+                '<input type="text" name="test" required pattern="^\\\w+$" minlength="3" maxlength="5">' +
+                '<input type="submit">' +
+              '</div>')
+            .prependTo('#qunit-fixture'),
+          input = form.find(':text'),
+          valid,
+          validate = new Validate({
+              element: form,
+              customRules: {
+                test: {
+                  async: function (callback) {
+                    var self = this;
+
+                    setTimeout(function () {
+                      callback.call(self, false);
+                    }, 100);
+                  },
+                  other: function () {
+                    return false;
+                  }
+                }
+              },
+              customMessages: {
+                test: {
+                  async: 'async',
+                  other: 'other'
+                }
+              },
               events: {
                 valid: function () {
                   valid = true;
@@ -55,60 +134,133 @@
                 }
               }
             });
+
+        input.val('12345');
         form.submit();
-        equal( form.find('.help-block').text(), '此项必填', '' );
-        equal( validate.isValid(), false, '' );
+        equal( form.find('.help-block').text(), 'other', '' );
+        equal( validate.state(), Validate.STATE.ERROR, '' );
         equal( valid, false, '' );
 
-        input.val('1');
-        form.submit();
-        equal( form.find('.help-block').text(), '请输入至少3个字符', '' );
-        equal( validate.isValid(), false, '' );
-        equal( valid, false, '' );
+        setTimeout(function () {
+          equal( form.find('.help-block').text(), 'async', '' );
+          equal( validate.state(), Validate.STATE.ERROR, '' );
+          equal( valid, false, '' );
+          start();
+        }, 200);
+
+        form.remove();
+      });
+
+      asyncTest('sync and async, async error', function() {
+        var form = $('<form/>')
+            .html('<div class="form-group">' +
+                '<input type="text" name="test" required pattern="^\\\w+$" minlength="3" maxlength="5">' +
+                '<input type="submit">' +
+              '</div>')
+            .prependTo('#qunit-fixture'),
+          input = form.find(':text'),
+          valid,
+          validate = new Validate({
+              element: form,
+              customRules: {
+                test: {
+                  async: function (callback) {
+                    var self = this;
+
+                    setTimeout(function () {
+                      callback.call(self, false);
+                    }, 100);
+                  },
+                  other: function () {
+                    return true;
+                  }
+                }
+              },
+              customMessages: {
+                test: {
+                  async: 'async',
+                  other: 'other'
+                }
+              },
+              events: {
+                valid: function () {
+                  valid = true;
+                },
+                error: function () {
+                  valid = false;
+                }
+              }
+            });
 
         input.val('12345');
         form.submit();
         equal( form.find('.help-block').text(), '', '' );
-        equal( validate.isValid(), true, '' );
-        equal( valid, true, '' );
+        equal( validate.state(), Validate.STATE.PENDING, '' );
+        equal( valid, undefined, '' );
 
-        input.val('123456');
-        form.submit();
-        equal( form.find('.help-block').text(), '最多输入5个字符', '' );
-        equal( validate.isValid(), false, '' );
-        equal( valid, false, '' );
+        setTimeout(function () {
+          equal( form.find('.help-block').text(), 'async', '' );
+          equal( validate.state(), Validate.STATE.ERROR, '' );
+          equal( valid, false, '' );
+          start();
+        }, 200);
 
         form.remove();
       });
-      test('new Validate({})', function() {
+
+      asyncTest('sync and async, other error', function() {
         var form = $('<form/>')
             .html('<div class="form-group">' +
-              '<input type="radio" required value="1" name="testradio">' +
-              '<input type="radio" required value="0" name="testradio">' +
+                '<input type="text" name="test" required pattern="^\\\w+$" minlength="3" maxlength="5">' +
+                '<input type="submit">' +
               '</div>')
-            .appendTo('#qunit-fixture'),
-          input = form.find('input'),
+            .prependTo('#qunit-fixture'),
+          input = form.find(':text'),
+          valid,
           validate = new Validate({
-              form: form
+              element: form,
+              customRules: {
+                test: {
+                  async: function (callback) {
+                    var self = this;
+
+                    setTimeout(function () {
+                      callback.call(self, true);
+                    }, 100);
+                  },
+                  other: function () {
+                    return false;
+                  }
+                }
+              },
+              customMessages: {
+                test: {
+                  async: 'async',
+                  other: 'other'
+                }
+              },
+              events: {
+                valid: function () {
+                  valid = true;
+                },
+                error: function () {
+                  valid = false;
+                }
+              }
             });
-        form.submit();
-        equal( form.find('.help-block').text(), '此项必填', '' );
-        equal( validate.isValid(), false, '' );
 
-        input.eq(0).prop('checked', true);
+        input.val('12345');
         form.submit();
-        equal( form.find('.help-block').text(), '', '' );
-        equal( validate.isValid(), true, '' );
+        equal( form.find('.help-block').text(), 'other', '' );
+        equal( validate.state(), Validate.STATE.ERROR, '' );
+        equal( valid, false, '' );
 
-        input.eq(1).prop('checked', true);
-        form.submit();
-        equal( form.find('.help-block').text(), '', '' );
-        equal( validate.isValid(), true, '' );
-
-        input.eq(1).prop('checked', false);
-        form.submit();
-        equal( form.find('.help-block').text(), '此项必填', '' );
-        equal( validate.isValid(), false, '' );
+        setTimeout(function () {
+        equal( form.find('.help-block').text(), 'other', '' );
+          equal( validate.state(), Validate.STATE.ERROR, '' );
+          equal( valid, false, '' );
+          start();
+        }, 200);
 
         form.remove();
       });
