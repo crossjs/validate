@@ -1,0 +1,118 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>validate</title>
+<link rel="stylesheet" href="../vendor/qunit/qunit.css">
+</head>
+<body>
+  <h1 id="qunit-header">QUnit Test Suite</h1>
+  <h2 id="qunit-banner"></h2>
+  <div id="qunit-testrunner-toolbar"></div>
+  <h2 id="qunit-userAgent"></h2>
+  <ol id="qunit-tests"></ol>
+  <div id="qunit-fixture">test markup</div>
+  <script src="../vendor/jquery/jquery.js"></script>
+  <script src="../vendor/seajs/sea.js"></script>
+  <script src="../vendor/qunit/qunit.js"></script>
+  <script>
+    QUnit.config.autostart = false;
+
+    seajs.config({
+      'base': '../sea-modules/',
+      'map': [
+        ['/sea-modules/jquery', '/vendor/jquery/jquery']
+      ],
+      'alias': {
+        '$': 'jquery',
+        'widget': 'pandora/widget/1.0.0/widget'
+      }
+    });
+
+    seajs.use(['../src/validate'], function (Validate) {
+
+      'use strict';
+
+      QUnit.start();
+
+      module('Module Validate');
+      test('new Validate({})', function() {
+        var form = $('<form/>')
+            .html('<div class="form-group">' +
+              '<input type="text" required minlength="3" maxlength="5">' +
+              '</div>')
+            .appendTo('#qunit-fixture'),
+          input = form.find('input'),
+          valid,
+          validate = new Validate({
+              element: form,
+              events: {
+                valid: function () {
+                  valid = true;
+                },
+                error: function () {
+                  valid = false;
+                }
+              }
+            });
+        form.submit();
+        equal( form.find('.help-block').text(), '此项必填', '' );
+        equal( validate.isValid(), false, '' );
+        equal( valid, false, '' );
+
+        input.val('1');
+        form.submit();
+        equal( form.find('.help-block').text(), '请输入至少3个字符', '' );
+        equal( validate.isValid(), false, '' );
+        equal( valid, false, '' );
+
+        input.val('12345');
+        form.submit();
+        equal( form.find('.help-block').text(), '', '' );
+        equal( validate.isValid(), true, '' );
+        equal( valid, true, '' );
+
+        input.val('123456');
+        form.submit();
+        equal( form.find('.help-block').text(), '最多输入5个字符', '' );
+        equal( validate.isValid(), false, '' );
+        equal( valid, false, '' );
+
+        form.remove();
+      });
+      test('new Validate({})', function() {
+        var form = $('<form/>')
+            .html('<div class="form-group">' +
+              '<input type="radio" required value="1" name="testradio">' +
+              '<input type="radio" required value="0" name="testradio">' +
+              '</div>')
+            .appendTo('#qunit-fixture'),
+          input = form.find('input'),
+          validate = new Validate({
+              form: form
+            });
+        form.submit();
+        equal( form.find('.help-block').text(), '此项必填', '' );
+        equal( validate.isValid(), false, '' );
+
+        input.eq(0).prop('checked', true);
+        form.submit();
+        equal( form.find('.help-block').text(), '', '' );
+        equal( validate.isValid(), true, '' );
+
+        input.eq(1).prop('checked', true);
+        form.submit();
+        equal( form.find('.help-block').text(), '', '' );
+        equal( validate.isValid(), true, '' );
+
+        input.eq(1).prop('checked', false);
+        form.submit();
+        equal( form.find('.help-block').text(), '此项必填', '' );
+        equal( validate.isValid(), false, '' );
+
+        form.remove();
+      });
+    });
+  </script>
+</body>
+</html>

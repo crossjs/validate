@@ -6,28 +6,265 @@
 <link rel="stylesheet" href="../vendor/qunit/qunit.css">
 </head>
 <body>
-    <h1 id="qunit-header">QUnit Test Suite</h1>
-    <h2 id="qunit-banner"></h2>
-    <div id="qunit-testrunner-toolbar"></div>
-    <h2 id="qunit-userAgent"></h2>
-    <ol id="qunit-tests"></ol>
-    <div id="qunit-fixture">test markup</div>
-    <script src="../vendor/zepto/zepto.js"></script>
-    <script src="../vendor/seajs/sea.js"></script>
-    <script src="../vendor/qunit/qunit.js"></script>
-    <script>
-        QUnit.config.autostart = false;
-        seajs.config({
-            'base': '../sea-modules/',
-            'map': [
-                ['/sea-modules/zepto', '/vendor/zepto/zepto']
-            ],
-            'alias': {
-              '$': 'zepto',
-              'class': 'crossjs/class/0.1.0/class'
-            }
-        });
-        seajs.use(['./validate.js']);
-    </script>
+  <h1 id="qunit-header">QUnit Test Suite</h1>
+  <h2 id="qunit-banner"></h2>
+  <div id="qunit-testrunner-toolbar"></div>
+  <h2 id="qunit-userAgent"></h2>
+  <ol id="qunit-tests"></ol>
+  <div id="qunit-fixture">test markup</div>
+  <script src="../vendor/jquery/jquery.js"></script>
+  <script src="../vendor/seajs/sea.js"></script>
+  <script src="../vendor/qunit/qunit.js"></script>
+  <script>
+    QUnit.config.autostart = false;
+
+    seajs.config({
+      'base': '../sea-modules/',
+      'map': [
+        ['/sea-modules/jquery', '/vendor/jquery/jquery']
+      ],
+      'alias': {
+        '$': 'jquery',
+        'widget': 'pandora/widget/1.0.0/widget'
+      }
+    });
+
+    seajs.use(['../src/validate'], function (Validate) {
+
+      'use strict';
+
+      QUnit.start();
+
+      asyncTest('sync and async, all valid', function() {
+        var form = $('<form action="/" target="_blank"/>')
+            .html('<div class="form-group">' +
+                '<input type="text" name="test" required pattern="^\\\w+$" minlength="3" maxlength="5">' +
+                '<input type="submit">' +
+              '</div>')
+            .prependTo('body'),
+          input = form.find(':text'),
+          valid,
+          validate = new Validate({
+              element: form,
+              customRules: {
+                test: {
+                  async: function (callback) {
+                    var self = this;
+
+                    setTimeout(function () {
+                      callback.call(self, true);
+                    }, 100);
+                  },
+                  other: function () {
+                    return true;
+                  }
+                }
+              },
+              customMessages: {
+                test: {
+                  async: 'async',
+                  other: 'other'
+                }
+              },
+              events: {
+                valid: function () {
+                  valid = true;
+                  // defaults:
+                  // this.element.submit();
+                },
+                error: function () {
+                  valid = false;
+                }
+              }
+            });
+
+        input.val('12345');
+        form.submit();
+        equal( form.find('.help-block').text(), '', '' );
+        equal( validate.state(), Validate.STATE.PENDING, '' );
+        equal( valid, undefined, '' );
+
+        setTimeout(function () {
+          equal( form.find('.help-block').text(), '', '' );
+          equal( validate.state(), Validate.STATE.VALID, '' );
+          equal( valid, true, '' );
+          start();
+        }, 200);
+
+        form.remove();
+      });
+
+      asyncTest('sync and async, all error', function() {
+        var form = $('<form/>')
+            .html('<div class="form-group">' +
+                '<input type="text" name="test" required pattern="^\\\w+$" minlength="3" maxlength="5">' +
+                '<input type="submit">' +
+              '</div>')
+            .prependTo('body'),
+          input = form.find(':text'),
+          valid,
+          validate = new Validate({
+              element: form,
+              customRules: {
+                test: {
+                  async: function (callback) {
+                    var self = this;
+
+                    setTimeout(function () {
+                      callback.call(self, false);
+                    }, 100);
+                  },
+                  other: function () {
+                    return false;
+                  }
+                }
+              },
+              customMessages: {
+                test: {
+                  async: 'async',
+                  other: 'other'
+                }
+              },
+              events: {
+                valid: function () {
+                  valid = true;
+                },
+                error: function () {
+                  valid = false;
+                }
+              }
+            });
+
+        input.val('12345');
+        form.submit();
+        equal( form.find('.help-block').text(), 'other', '' );
+        equal( validate.state(), Validate.STATE.ERROR, '' );
+        equal( valid, false, '' );
+
+        setTimeout(function () {
+          equal( form.find('.help-block').text(), 'async', '' );
+          equal( validate.state(), Validate.STATE.ERROR, '' );
+          equal( valid, false, '' );
+          start();
+        }, 200);
+
+        form.remove();
+      });
+
+      asyncTest('sync and async, async error', function() {
+        var form = $('<form/>')
+            .html('<div class="form-group">' +
+                '<input type="text" name="test" required pattern="^\\\w+$" minlength="3" maxlength="5">' +
+                '<input type="submit">' +
+              '</div>')
+            .prependTo('body'),
+          input = form.find(':text'),
+          valid,
+          validate = new Validate({
+              element: form,
+              customRules: {
+                test: {
+                  async: function (callback) {
+                    var self = this;
+
+                    setTimeout(function () {
+                      callback.call(self, false);
+                    }, 100);
+                  },
+                  other: function () {
+                    return true;
+                  }
+                }
+              },
+              customMessages: {
+                test: {
+                  async: 'async',
+                  other: 'other'
+                }
+              },
+              events: {
+                valid: function () {
+                  valid = true;
+                },
+                error: function () {
+                  valid = false;
+                }
+              }
+            });
+
+        input.val('12345');
+        form.submit();
+        equal( form.find('.help-block').text(), '', '' );
+        equal( validate.state(), Validate.STATE.PENDING, '' );
+        equal( valid, undefined, '' );
+
+        setTimeout(function () {
+          equal( form.find('.help-block').text(), 'async', '' );
+          equal( validate.state(), Validate.STATE.ERROR, '' );
+          equal( valid, false, '' );
+          start();
+        }, 200);
+
+        form.remove();
+      });
+
+      asyncTest('sync and async, other error', function() {
+        var form = $('<form/>')
+            .html('<div class="form-group">' +
+                '<input type="text" name="test" required pattern="^\\\w+$" minlength="3" maxlength="5">' +
+                '<input type="submit">' +
+              '</div>')
+            .prependTo('body'),
+          input = form.find(':text'),
+          valid,
+          validate = new Validate({
+              element: form,
+              customRules: {
+                test: {
+                  async: function (callback) {
+                    var self = this;
+
+                    setTimeout(function () {
+                      callback.call(self, true);
+                    }, 100);
+                  },
+                  other: function () {
+                    return false;
+                  }
+                }
+              },
+              customMessages: {
+                test: {
+                  async: 'async',
+                  other: 'other'
+                }
+              },
+              events: {
+                valid: function () {
+                  valid = true;
+                },
+                error: function () {
+                  valid = false;
+                }
+              }
+            });
+
+        input.val('12345');
+        form.submit();
+        equal( form.find('.help-block').text(), 'other', '' );
+        equal( validate.state(), Validate.STATE.ERROR, '' );
+        equal( valid, false, '' );
+
+        setTimeout(function () {
+        equal( form.find('.help-block').text(), 'other', '' );
+          equal( validate.state(), Validate.STATE.ERROR, '' );
+          equal( valid, false, '' );
+          start();
+        }, 200);
+
+        form.remove();
+      });
+    });
+  </script>
 </body>
 </html>

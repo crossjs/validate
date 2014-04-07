@@ -35,7 +35,7 @@ module.exports = function(grunt) {
           src: ['src/*.js'],
           instrumentedFiles: 'temp/',
           lcovReport: 'report/',
-          linesThresholdPct: 85
+          linesThresholdPct: 60
         }
       },
       all: ['test/*.html']
@@ -170,7 +170,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('demo', ['clean:sea', 'copy:sea']);
 
-  grunt.registerTask('doc', ['yuidoc', 'clean:pages', 'copy:doc', 'clean:doc']);
+  grunt.registerTask('doc', ['clean:doc', 'yuidoc', 'clean:pages', 'copy:doc']);
 
   grunt.registerTask('test', ['jshint', 'qunit']);
 

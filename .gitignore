@@ -1,7 +1,6 @@
-.svn
-.DS_Store
-/dist
-/gh-pages
-/node_modules
-/report
-/sea-modules
+sea-modules
+node_modules
+gh-pages
+report
+dist
+doc
