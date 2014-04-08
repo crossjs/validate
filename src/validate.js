@@ -142,7 +142,6 @@ var Validate = Widget.extend({
         key += ' ' + this.option('elements').join(',');
 
         delegates[key] = function (e) {
-          console.log(arguments);
           this.validateElem($(e.currentTarget));
         };
       }
@@ -151,7 +150,7 @@ var Validate = Widget.extend({
     },
     events: {
       valid: function () {
-        this.element.submit();
+        this.element[0].submit();
       }
     }
   },

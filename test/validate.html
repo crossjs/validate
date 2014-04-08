@@ -35,6 +35,38 @@
 
       QUnit.start();
 
+      test('simple', function() {
+        var form = $('<form action="/" target="_blank"/>')
+            .html('<div class="form-group">' +
+                '<input type="text" name="test" required>' +
+                '<input type="submit">' +
+              '</div>')
+            .prependTo('#qunit-fixture'),
+          input = form.find(':text'),
+          valid,
+          validate = new Validate({
+              element: form,
+              events: {
+                valid: function () {
+                  valid = true;
+                  // defaults:
+                  // this.element[0].submit();
+                },
+                error: function () {
+                  valid = false;
+                }
+              }
+            });
+
+        input.val('12345');
+        form.submit();
+        equal( form.find('.help-block').text(), '', '' );
+        equal( validate.state(), Validate.STATE.VALID, '' );
+        equal( valid, true, '' );
+
+        form.remove();
+      });
+
       asyncTest('sync and async, all valid', function() {
         var form = $('<form action="/" target="_blank"/>')
             .html('<div class="form-group">' +

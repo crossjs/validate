@@ -136,7 +136,7 @@ define("pandora/validate/1.0.0/validate-debug", [ "$-debug", "pandora/widget/1.0
             },
             events: {
                 valid: function() {
-                    this.element.submit();
+                    this.element[0].submit();
                 }
             }
         },
