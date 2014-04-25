@@ -111,24 +111,41 @@ define("pandora/validate/1.0.0/validate-debug", [ "$-debug", "pandora/widget/1.0
                 url: "请输入URL地址",
                 async: "异步校验失败，请检查"
             },
+            // UI 配置
+            helpClass: "help-block",
+            wrapClass: "form-group",
+            errorClass: "has-error",
+            // 设置信息的显示
+            showMessage: function(params, text) {
+                var elem = params.elem;
+                var wrap = elem.data("wrap");
+                var help = elem.data("help");
+                if (!wrap) {
+                    wrap = elem.closest("." + this.option("wrapClass"));
+                    elem.data("wrap", wrap);
+                }
+                if (!help) {
+                    help = wrap.find("." + this.option("helpClass"));
+                    if (help.length === 0) {
+                        help = $('<div class="' + this.option("helpClass") + '"/>').appendTo(wrap);
+                    }
+                    elem.data("help", help);
+                }
+                wrap.addClass(this.option("errorClass"));
+                help.text(text || this.getMessage(params));
+            },
             customRules: {},
             delegates: function() {
                 var delegates = {
                     submit: function(e) {
                         e.preventDefault();
-                        if (this.data("submitted")) {
-                            // 判断是否等待异步
-                            this.checkValidation();
-                        } else {
-                            this.validateForm();
-                        }
+                        this.submit();
                     }
                 }, // 元素事件
                 key = this.option("eventType");
                 if (key) {
                     key += " " + this.option("elements").join(",");
                     delegates[key] = function(e) {
-                        console.log(arguments);
                         this.validateElem($(e.currentTarget));
                     };
                 }
@@ -147,6 +164,14 @@ define("pandora/validate/1.0.0/validate-debug", [ "$-debug", "pandora/widget/1.0
             this.element.attr({
                 novalidate: "novalidate"
             });
+        },
+        submit: function() {
+            if (this.data("submitted")) {
+                // 判断是否等待异步
+                this.checkValidation();
+            } else {
+                this.validateForm();
+            }
         },
         /**
    * 校验整个表单
@@ -268,23 +293,8 @@ define("pandora/validate/1.0.0/validate-debug", [ "$-debug", "pandora/widget/1.0
    * @param {String} [text] 错误信息
    */
         addError: function(params, text) {
-            var elem = params.elem, wrap = elem.data("wrap"), help = elem.data("help");
-            if (!wrap) {
-                wrap = elem.closest(".form-group");
-                elem.data("wrap", wrap);
-            }
-            if (!help) {
-                help = wrap.find(".help-block");
-                // if (help.length > 1)
-                //  help = help.filter('[data-for="' + elem.prop('name') + '"]');
-                if (help.length === 0) {
-                    help = $('<div class="help-block"/>').appendTo(wrap);
-                }
-                elem.data("help", help);
-            }
-            wrap.addClass("has-error");
-            help.text(text || this.getMessage(params));
-            this.errorElements = this.errorElements.add(elem);
+            this.option("showMessage").call(this, params, text);
+            this.errorElements = this.errorElements.add(params.elem);
         },
         /**
    * 获取错误提示信息
@@ -306,27 +316,21 @@ define("pandora/validate/1.0.0/validate-debug", [ "$-debug", "pandora/widget/1.0
    */
         removeError: function(params) {
             var elem = params.elem, wrap = elem.data("wrap"), help = elem.data("help"), placeholder;
+            this.errorElements = this.errorElements.not(elem);
             if (!wrap) {
-                wrap = elem.closest(".form-group");
+                wrap = elem.closest("." + this.option("wrapClass"));
                 elem.data("wrap", wrap);
             }
+            wrap.removeClass(this.option("errorClass"));
             if (!help) {
-                help = wrap.find(".help-block");
-                // if (help.length > 1)
-                //  help = help.filter('[data-for="' + elem.prop('name') + '"]');
-                if (help.length === 0) {
-                    help = $('<div class="help-block"/>').appendTo(wrap);
-                }
-                elem.data("help", help);
+                return;
             }
-            wrap.removeClass("has-error");
             placeholder = help.data("placeholder");
             if (placeholder) {
                 help.html(htmldecode(placeholder));
             } else {
                 help.empty();
             }
-            this.errorElements = this.errorElements.not(elem);
         }
     });
     Validate.addRule = function(rule) {
