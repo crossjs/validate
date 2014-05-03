@@ -1,7 +1,7 @@
 #validate
 
-[![Build Status](https://api.travis-ci.org/crossjs/validate.png?branch=master)](http://travis-ci.org/crossjs/validate)
-[![Coverage Status](https://coveralls.io/repos/crossjs/validate/badge.png?branch=master)](https://coveralls.io/r/crossjs/validate?branch=master)
+[![Build Status](https://api.travis-ci.org/pandorajs/validate.png?branch=master)](http://travis-ci.org/pandorajs/validate)
+[![Coverage Status](https://coveralls.io/repos/pandorajs/validate/badge.png?branch=master)](https://coveralls.io/r/pandorajs/validate?branch=master)
 
  > form validator, seajs module
 
@@ -17,6 +17,10 @@
 
 1. run `spm install pandora/validate`
 1. write `require('pandora/validate/VERSION.NUMBER/validate')`
+
+##find examples
+
+1. view the source files in '/src'
 
 ##history
 
