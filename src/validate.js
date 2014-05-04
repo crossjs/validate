@@ -10,19 +10,6 @@ define(function (require, exports, module) {
 var $ = require('$'),
   Widget = require('widget');
 
-var htmldecode = function (value) {
-  var replacements = {
-    'lt': '<',
-    'gt': '>',
-    'amp': '&',
-    'quot': '"',
-    'apos': '\''
-  };
-  return value.replace(/&(?:lt|gt|amp|quot|apos);/g, function(character, $1) {
-    return replacements[$1];
-  });
-};
-
 /**
  * Validate
  * 目前支持单个表单
@@ -83,8 +70,7 @@ var Validate = Widget.extend({
         return !isNaN(params.value);
       },
       url: function (params) {
-        // 此项目暂不支持https
-        return (/^https?:\/\/((?:[\w\d][\w\d\-]*)(?:\.[\w\d][\w\d\-]*)*(?:\.\w{2,})+)(?:\/\S*)?$/i).test(params.value);
+        return (/^(https?:)?\/\/([\w\d][\w\d\-]*(\.[\w\d][\w\d\-]*)*(\.\w{2,})+)(\/\S*)?$/i).test(params.value);
       },
       // 异步验证，如：从服务端验证、校验动态加载的图片尺寸
       async: function (params) {
@@ -150,6 +136,8 @@ var Validate = Widget.extend({
     },
     customRules: {
     },
+    customMessages: {
+    },
     delegates: function () {
       var delegates = {
           'submit': function (e) {
@@ -169,23 +157,16 @@ var Validate = Widget.extend({
       }
 
       return delegates;
-    },
-    events: {
-      valid: function () {
-        this.element[0].submit();
-      }
     }
   },
 
   setup: function () {
-    this.state(Validate.STATE.INITIAL);
-
     this.pendingCount = 0;
     this.errorElements = $();
 
     this.element.attr({
-        novalidate: 'novalidate'
-      });
+      novalidate: 'novalidate'
+    });
   },
 
   submit: function () {
@@ -195,7 +176,6 @@ var Validate = Widget.extend({
     } else {
       this.validateForm();
     }
-    // return false;
   },
 
   /**
@@ -205,15 +185,23 @@ var Validate = Widget.extend({
    */
   validateForm: function () {
     var self = this;
-    this.errorElements = $();
-    this.data('submitted', true);
-    this.$(this.option('elements').join(','))
+
+    self.errorElements = $();
+
+    // 标记提交
+    self.data('submitted', true);
+
+    // 验证元素
+    self.$(self.option('elements').join(','))
       .filter(':enabled')
       .each(function () {
-        self.validateElem($(this));
+        if (this.name) {
+          self.validateElem($(this));
+        }
       });
-    this.checkValidation();
-    // this.element.submit();
+
+    // 检查验证
+    self.checkValidation();
   },
 
   /**
@@ -222,7 +210,9 @@ var Validate = Widget.extend({
    * @method validateElem
    */
   validateElem: function (elem) {
-    var valid = true, rules,
+    var self = this,
+      valid = true,
+      rules,
 
       params = {
         elem: elem,
@@ -231,35 +221,31 @@ var Validate = Widget.extend({
       };
 
     // 验证前，先移除错误信息
-    this.removeError(params);
+    self.removeError(params);
 
     // 验证属性
-    $.each(this.option('attributes'), $.proxy(function (index, rule) {
+    $.each(self.option('attributes'), function (index, rule) {
       var prop = elem.attr(rule);
       if (prop !== undefined && prop !== null && prop !== '') {
-        return (valid = this.checkRule($.extend({
+        return (valid = self.checkRule($.extend({
             rule: rule,
             prop: isNaN(prop) ? prop : +prop
           },params)));
       }
-    }, this));
+    });
 
     if (valid === false) {
       return;
     }
 
     // 自定义的rules
-    if ((rules = this.option(['customRules', params.name].join('/')))) {
-      $.each(rules, $.proxy(function (rule, prop) {
-        return this.checkRule($.extend({
+    if ((rules = self.option(['customRules', params.name].join('/')))) {
+      $.each(rules, function (rule, prop) {
+        return self.checkRule($.extend({
             rule: rule,
             prop: isNaN(prop) ? prop : +prop
           },params));
-      }, this));
-
-      // if (valid === false) {
-      //  return;
-      // }
+      });
     }
 
   },
@@ -274,8 +260,6 @@ var Validate = Widget.extend({
    */
   checkRule: function (params) {
     var valid, rule = this.option(['rules', params.rule].join('/'));
-
-    // params.elem, params.value, params.prop
 
     if (rule) {
       valid = rule.call(this, params);
@@ -296,44 +280,15 @@ var Validate = Widget.extend({
    * @method checkValidation
    */
   checkValidation: function () {
-    if (this.errorElements.length > 0) {
-      this.state(Validate.STATE.ERROR);
-      this.data('submitted', false);
-      this.focusError();
-      return this.fire('error');
-    }
-
-    if (this.pendingCount <= 0) {
-      this.state(Validate.STATE.VALID);
-      this.data('submitted', false);
-      return this.fire('valid');
-    }
-
-    this.state(Validate.STATE.PENDING);
-  },
-
-  /**
-   * 清除错误信息
-   * @method clearErrors
-   */
-  clearErrors: function () {
     var self = this;
-    this.$(this.option('elements').join(','))
-      .filter(':enabled')
-      .each(function () {
-        self.removeError({
-          elem: $(this)
-        });
-      });
-  },
 
-  /**
-   * 使第一个校验失败的元素获得焦点
-   *
-   * @method focusError
-   */
-  focusError: function () {
-    this.errorElements.length && this.errorElements.eq(0).focus();
+    if (self.errorElements.length > 0) {
+      self.data('submitted', false);
+      self.fire('error') && self.errorElements.eq(0).focus();
+    } else if (self.pendingCount <= 0) {
+      self.data('submitted', false);
+      self.fire('valid') && self.element[0].submit();
+    }
   },
 
   /**
@@ -360,7 +315,6 @@ var Validate = Widget.extend({
    */
   getMessage: function (params) {
     var text = this.option(['customMessages', params.name, params.rule].join('/')) ||
-      this.option(['messages', params.name, params.rule].join('/')) ||
       this.option(['messages', params.rule].join('/'));
 
     return text ? text.replace(/\{0\}/g, params.prop) : '';
@@ -374,29 +328,20 @@ var Validate = Widget.extend({
    * @param {Object} params 表单元素
    */
   removeError: function (params) {
-    var elem = params.elem,
+    var self = this,
+      elem = params.elem,
       wrap = elem.data('wrap'),
-      help = elem.data('help'),
-      placeholder;
+      help = elem.data('help');
 
-    this.errorElements = this.errorElements.not(elem);
+    self.errorElements = self.errorElements.not(elem);
 
     if (!wrap) {
-      wrap = elem.closest('.' + this.option('wrapClass'));
+      wrap = elem.closest('.' + self.option('wrapClass'));
       elem.data('wrap', wrap);
     }
-    wrap.removeClass(this.option('errorClass'));
+    wrap.removeClass(self.option('errorClass'));
 
-    if (!help) {
-      return;
-    }
-
-    placeholder = help.data('placeholder');
-    if (placeholder) {
-      help.html(htmldecode(placeholder));
-    } else {
-      help.empty();
-    }
+    help && help.empty();
 
   }
 
@@ -404,13 +349,6 @@ var Validate = Widget.extend({
 
 Validate.addRule = function (rule) {
   $.extend(true, Validate.prototype.defaults.rules, rule);
-};
-
-Validate.STATE = {
-  INITIAL: -1,
-  ERROR: 0,
-  VALID: 1,
-  PENDING: 2
 };
 
 module.exports = Validate;

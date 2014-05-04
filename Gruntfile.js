@@ -36,7 +36,7 @@ module.exports = function(grunt) {
           src: ['src/*.js'],
           instrumentedFiles: 'temp/',
           lcovReport: 'report/',
-          linesThresholdPct: 60
+          linesThresholdPct: 85
         }
       },
       all: ['test/*.html']

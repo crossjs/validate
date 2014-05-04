@@ -35,10 +35,13 @@
 
       QUnit.start();
 
-      test('simple', function() {
-        var form = $('<form action="/" target="_blank"/>')
+      var messages = Validate.prototype.defaults.messages;
+
+      test('required', function() {
+        var form = $('<form/>')
             .html('<div class="form-group">' +
-                '<input type="text" name="test" required>' +
+                '<input type="text" name="test"' +
+                ' required>' +
                 '<input type="submit">' +
               '</div>')
             .prependTo('#qunit-fixture'),
@@ -49,8 +52,8 @@
               events: {
                 valid: function () {
                   valid = true;
-                  // defaults:
-                  // this.element[0].submit();
+                  // prevent submit
+                  return false;
                 },
                 error: function () {
                   valid = false;
@@ -58,10 +61,369 @@
               }
             });
 
-        input.val('12345');
+        form.submit();
+        equal( form.find('.help-block').text(), messages.required, '' );
+        equal( valid, false, '' );
+
+        input.val('123');
         form.submit();
         equal( form.find('.help-block').text(), '', '' );
-        equal( validate.state(), Validate.STATE.VALID, '' );
+        equal( valid, true, '' );
+
+        form.remove();
+      });
+
+      test('pattern', function() {
+        var form = $('<form/>')
+            .html('<div class="form-group">' +
+                '<input type="text" name="test"' +
+                ' pattern="^[1-5]{2,3}$">' +
+                '<input type="submit">' +
+              '</div>')
+            .prependTo('#qunit-fixture'),
+          input = form.find(':text'),
+          valid,
+          validate = new Validate({
+              element: form,
+              events: {
+                valid: function () {
+                  valid = true;
+                  // prevent submit
+                  return false;
+                },
+                error: function () {
+                  valid = false;
+                }
+              }
+            });
+
+        form.submit();
+        equal( form.find('.help-block').text(), messages.pattern, '' );
+        equal( valid, false, '' );
+
+        input.val('456');
+        form.submit();
+        equal( form.find('.help-block').text(), messages.pattern, '' );
+        equal( valid, false, '' );
+
+        input.val('123');
+        form.submit();
+        equal( form.find('.help-block').text(), '', '' );
+        equal( valid, true, '' );
+
+        form.remove();
+      });
+
+      test('minlength/maxlength', function() {
+        var form = $('<form/>')
+            .html('<div class="form-group">' +
+                '<input type="text" name="test"' +
+                ' minlength="2" maxlength="3">' +
+                '<input type="submit">' +
+              '</div>')
+            .prependTo('#qunit-fixture'),
+          input = form.find(':text'),
+          valid,
+          validate = new Validate({
+              element: form,
+              events: {
+                valid: function () {
+                  valid = true;
+                  // prevent submit
+                  return false;
+                },
+                error: function () {
+                  valid = false;
+                }
+              }
+            });
+
+        form.submit();
+        equal( form.find('.help-block').text(), '', '' );
+        equal( valid, true, '' );
+
+        input.val('1');
+        form.submit();
+        equal( form.find('.help-block').text(), messages.minlength.replace('{0}', '2'), '' );
+        equal( valid, false, '' );
+
+        input.val('12345');
+        form.submit();
+        equal( form.find('.help-block').text(), messages.maxlength.replace('{0}', '3'), '' );
+        equal( valid, false, '' );
+
+        form.remove();
+      });
+
+      test('min/max', function() {
+        var form = $('<form/>')
+            .html('<div class="form-group">' +
+                '<input type="text" name="test"' +
+                ' min="20" max="200">' +
+                '<input type="submit">' +
+              '</div>')
+            .prependTo('#qunit-fixture'),
+          input = form.find(':text'),
+          valid,
+          validate = new Validate({
+              element: form,
+              events: {
+                valid: function () {
+                  valid = true;
+                  // prevent submit
+                  return false;
+                },
+                error: function () {
+                  valid = false;
+                }
+              }
+            });
+
+        form.submit();
+        equal( form.find('.help-block').text(), messages.min.replace('{0}', '20'), '' );
+        equal( valid, false, '' );
+
+        input.val('2');
+        form.submit();
+        equal( form.find('.help-block').text(), messages.min.replace('{0}', '20'), '' );
+        equal( valid, false, '' );
+
+        input.val('2000');
+        form.submit();
+        equal( form.find('.help-block').text(), messages.max.replace('{0}', '200'), '' );
+        equal( valid, false, '' );
+
+        input.val('100');
+        form.submit();
+        equal( form.find('.help-block').text(), '', '' );
+        equal( valid, true, '' );
+
+        form.remove();
+      });
+
+      test('equalto', function() {
+        var form = $('<form/>')
+            .html('<div class="form-group">' +
+                '<input type="text" name="test"' +
+                ' equalto="test2">' +
+                '<input type="text" name="test2" value="321">' +
+                '<input type="submit">' +
+              '</div>')
+            .prependTo('#qunit-fixture'),
+          input = form.find(':text:eq(0)'),
+          valid,
+          validate = new Validate({
+              element: form,
+              events: {
+                valid: function () {
+                  valid = true;
+                  // prevent submit
+                  return false;
+                },
+                error: function () {
+                  valid = false;
+                }
+              }
+            });
+
+        form.submit();
+        equal( form.find('.help-block').text(), messages.equalto, '' );
+        equal( valid, false, '' );
+
+        input.val('123');
+        form.submit();
+        equal( form.find('.help-block').text(), messages.equalto, '' );
+        equal( valid, false, '' );
+
+        input.val('321');
+        form.submit();
+        equal( form.find('.help-block').text(), '', '' );
+        equal( valid, true, '' );
+
+        form.remove();
+      });
+
+      test('minto/maxto', function() {
+        var form = $('<form/>')
+            .html('<div class="form-group">' +
+                '<input type="text" name="test"' +
+                ' minto="test2" maxto="test3">' +
+                '<input type="text" name="test2" value="20">' +
+                '<input type="text" name="test3" value="200">' +
+                '<input type="submit">' +
+              '</div>')
+            .prependTo('#qunit-fixture'),
+          input = form.find(':text:eq(0)'),
+          valid,
+          validate = new Validate({
+              element: form,
+              events: {
+                valid: function () {
+                  valid = true;
+                  // prevent submit
+                  return false;
+                },
+                error: function () {
+                  valid = false;
+                }
+              }
+            });
+
+        form.submit();
+        equal( form.find('.help-block').text(), messages.minto.replace('{0}', 'test2'), '' );
+        equal( valid, false, '' );
+
+        input.val('2');
+        form.submit();
+        equal( form.find('.help-block').text(), messages.minto.replace('{0}', 'test2'), '' );
+        equal( valid, false, '' );
+
+        input.val('2000');
+        form.submit();
+        equal( form.find('.help-block').text(), messages.maxto.replace('{0}', 'test3'), '' );
+        equal( valid, false, '' );
+
+        input.val('100');
+        form.submit();
+        equal( form.find('.help-block').text(), '', '' );
+        equal( valid, true, '' );
+
+        form.remove();
+      });
+
+      test('digits', function() {
+        var form = $('<form/>')
+            .html('<div class="form-group">' +
+                '<input type="text" name="test"' +
+                ' digits="true">' +
+                '<input type="submit">' +
+              '</div>')
+            .prependTo('#qunit-fixture'),
+          input = form.find(':text'),
+          valid,
+          validate = new Validate({
+              element: form,
+              events: {
+                valid: function () {
+                  valid = true;
+                  // prevent submit
+                  return false;
+                },
+                error: function () {
+                  valid = false;
+                }
+              }
+            });
+
+        form.submit();
+        equal( form.find('.help-block').text(), '', '' );
+        equal( valid, true, '' );
+
+        input.val('12.5');
+        form.submit();
+        equal( form.find('.help-block').text(), messages.digits, '' );
+        equal( valid, false, '' );
+
+        input.val('125');
+        form.submit();
+        equal( form.find('.help-block').text(), '', '' );
+        equal( valid, true, '' );
+
+        form.remove();
+      });
+
+      test('number', function() {
+        var form = $('<form/>')
+            .html('<div class="form-group">' +
+                '<input type="text" name="test"' +
+                ' number="true">' +
+                '<input type="submit">' +
+              '</div>')
+            .prependTo('#qunit-fixture'),
+          input = form.find(':text'),
+          valid,
+          validate = new Validate({
+              element: form,
+              events: {
+                valid: function () {
+                  valid = true;
+                  // prevent submit
+                  return false;
+                },
+                error: function () {
+                  valid = false;
+                }
+              }
+            });
+
+        form.submit();
+        equal( form.find('.help-block').text(), '', '' );
+        equal( valid, true, '' );
+
+        input.val('abc');
+        form.submit();
+        equal( form.find('.help-block').text(), messages.number, '' );
+        equal( valid, false, '' );
+
+        input.val('12.5');
+        form.submit();
+        equal( form.find('.help-block').text(), '', '' );
+        equal( valid, true, '' );
+
+        form.remove();
+      });
+
+      test('url', function() {
+        var form = $('<form/>')
+            .html('<div class="form-group">' +
+                '<input type="text" name="test"' +
+                ' url="true">' +
+                '<input type="submit">' +
+              '</div>')
+            .prependTo('#qunit-fixture'),
+          input = form.find(':text'),
+          valid,
+          validate = new Validate({
+              element: form,
+              events: {
+                valid: function () {
+                  valid = true;
+                  // prevent submit
+                  return false;
+                },
+                error: function () {
+                  valid = false;
+                }
+              }
+            });
+
+        form.submit();
+        equal( form.find('.help-block').text(), messages.url, '' );
+        equal( valid, false, '' );
+
+        input.val('abc');
+        form.submit();
+        equal( form.find('.help-block').text(), messages.url, '' );
+        equal( valid, false, '' );
+
+        input.val('//some.domain');
+        form.submit();
+        equal( form.find('.help-block').text(), '', '' );
+        equal( valid, true, '' );
+
+        input.val('http://some.domain');
+        form.submit();
+        equal( form.find('.help-block').text(), '', '' );
+        equal( valid, true, '' );
+
+        input.val('ftp://some.domain');
+        form.submit();
+        equal( form.find('.help-block').text(), messages.url, '' );
+        equal( valid, false, '' );
+
+        input.val('https://some.domain');
+        form.submit();
+        equal( form.find('.help-block').text(), '', '' );
         equal( valid, true, '' );
 
         form.remove();
@@ -101,8 +463,8 @@
               events: {
                 valid: function () {
                   valid = true;
-                  // defaults:
-                  // this.element.submit();
+                  // prevent submit
+                  return false;
                 },
                 error: function () {
                   valid = false;
@@ -113,12 +475,10 @@
         input.val('12345');
         form.submit();
         equal( form.find('.help-block').text(), '', '' );
-        equal( validate.state(), Validate.STATE.PENDING, '' );
         equal( valid, undefined, '' );
 
         setTimeout(function () {
           equal( form.find('.help-block').text(), '', '' );
-          equal( validate.state(), Validate.STATE.VALID, '' );
           equal( valid, true, '' );
           start();
         }, 200);
@@ -160,6 +520,8 @@
               events: {
                 valid: function () {
                   valid = true;
+                  // prevent submit
+                  return false;
                 },
                 error: function () {
                   valid = false;
@@ -170,12 +532,10 @@
         input.val('12345');
         form.submit();
         equal( form.find('.help-block').text(), 'other', '' );
-        equal( validate.state(), Validate.STATE.ERROR, '' );
         equal( valid, false, '' );
 
         setTimeout(function () {
           equal( form.find('.help-block').text(), 'async', '' );
-          equal( validate.state(), Validate.STATE.ERROR, '' );
           equal( valid, false, '' );
           start();
         }, 200);
@@ -217,6 +577,8 @@
               events: {
                 valid: function () {
                   valid = true;
+                  // prevent submit
+                  return false;
                 },
                 error: function () {
                   valid = false;
@@ -227,12 +589,10 @@
         input.val('12345');
         form.submit();
         equal( form.find('.help-block').text(), '', '' );
-        equal( validate.state(), Validate.STATE.PENDING, '' );
         equal( valid, undefined, '' );
 
         setTimeout(function () {
           equal( form.find('.help-block').text(), 'async', '' );
-          equal( validate.state(), Validate.STATE.ERROR, '' );
           equal( valid, false, '' );
           start();
         }, 200);
@@ -274,6 +634,8 @@
               events: {
                 valid: function () {
                   valid = true;
+                  // prevent submit
+                  return false;
                 },
                 error: function () {
                   valid = false;
@@ -284,12 +646,10 @@
         input.val('12345');
         form.submit();
         equal( form.find('.help-block').text(), 'other', '' );
-        equal( validate.state(), Validate.STATE.ERROR, '' );
         equal( valid, false, '' );
 
         setTimeout(function () {
         equal( form.find('.help-block').text(), 'other', '' );
-          equal( validate.state(), Validate.STATE.ERROR, '' );
           equal( valid, false, '' );
           start();
         }, 200);
