@@ -203,14 +203,14 @@
 
       test('equalto', function() {
         var form = $('<form/>')
-            .html('<div class="form-group">' +
-                '<input type="text" name="test"' +
-                ' equalto="test2">' +
-                '<input type="text" name="test2" value="321">' +
-                '<input type="submit">' +
+            .html('<div>' +
+                '<p class="form-group"><input type="text" name="test" value="321"></p>' +
+                '<p class="form-group"><input type="text" name="test2"' +
+                ' equalto="test">' +
+                '<input type="submit"></p>' +
               '</div>')
             .prependTo('#qunit-fixture'),
-          input = form.find(':text:eq(0)'),
+          input = form.find(':text:eq(1)'),
           valid,
           validate = new Validate({
               element: form,
@@ -246,14 +246,14 @@
       test('minto/maxto', function() {
         var form = $('<form/>')
             .html('<div class="form-group">' +
-                '<input type="text" name="test"' +
-                ' minto="test2" maxto="test3">' +
                 '<input type="text" name="test2" value="20">' +
                 '<input type="text" name="test3" value="200">' +
+                '<input type="text" name="test"' +
+                ' minto="test2" maxto="test3">' +
                 '<input type="submit">' +
               '</div>')
             .prependTo('#qunit-fixture'),
-          input = form.find(':text:eq(0)'),
+          input = form.find(':text:eq(2)'),
           valid,
           validate = new Validate({
               element: form,

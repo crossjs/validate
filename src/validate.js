@@ -20,124 +20,54 @@ var Validate = Widget.extend({
 
   defaults: {
     // 需要验证的元素
-    elements: ['select', 'option', 'input[type="checkbox"]', 'input[type="radio"]', 'textarea', 'input[type="text"]', 'input[type="password"]', 'input[type="file"]'],
+    elements: ['select', 'textarea', 'input[name]'],
     // 默认查找的属性
     attributes: ['required', 'pattern', 'minlength', 'maxlength', 'min', 'max', 'equalto', 'minto', 'maxto', 'digits', 'number', 'url', 'async'],
     // 预置的校验函数
     // params: {elem, name, value, rule, prop}
-    rules: {
-      required: function (params) {
-        var elem = params.elem;
-        // 如果是单复选框，则特殊判断
-        if (/radio|checkbox/.test(elem.prop('type'))) {
-          if (params.name) {
-            return !!this.$('[name="' + params.name + '"]:checked').length;
-          }
-          return elem.is('input[type="checkbox"]');
-        }
-        return (/\S/).test(params.value);
-      },
-      pattern: function (params) {
-        return new RegExp(params.prop).test(params.value);
-      },
-      minlength: function (params) {
-        var len = params.value.length;
-        return len ? (len >= params.prop) : true;
-      },
-      maxlength: function (params) {
-        var len = params.value.length;
-        return len ? (len <= params.prop) : true;
-      },
-      min: function (params) {
-        return parseInt(params.value, 10) >= params.prop;
-      },
-      max: function (params) {
-        return parseInt(params.value, 10) <= params.prop;
-      },
-      equalto: function (params) {
-        return params.value === this.$('[name="' + params.prop + '"]').val();
-      },
-      minto: function (params) {
-        return parseInt(params.value, 10) >= parseInt(this.$('[name="' + params.prop + '"]').val(), 10);
-      },
-      maxto: function (params) {
-        return parseInt(params.value, 10) <= parseInt(this.$('[name="' + params.prop + '"]').val(), 10);
-      },
-      digits: function (params) {
-        return !/\D/.test(params.value);
-      },
-      number: function (params) {
-        return !isNaN(params.value);
-      },
-      url: function (params) {
-        return (/^(https?:)?\/\/([\w\d][\w\d\-]*(\.[\w\d][\w\d\-]*)*(\.\w{2,})+)(\/\S*)?$/i).test(params.value);
-      },
-      // 异步验证，如：从服务端验证、校验动态加载的图片尺寸
-      async: function (params) {
-        this.pendingCount++;
-
-        params.prop.call(this, function (success) {
-          if (success) {
-            this.pendingCount--;
-          } else {
-            this.addError(params);
-          }
-          // 检查
-          this.checkValidation();
-        });
-
-        return 'pending';
-      }
-    },
-    messages: {
-      'required': '此项必填',
-      // TODO: 从title中获取
-      'pattern': '不符合规则',
-      'minlength': '请输入至少{0}个字符',
-      'maxlength': '最多输入{0}个字符',
-      'min': '不能小于{0}',
-      'max': '不能大于{0}',
-      'equalto': '两次输入的内容不一致，请重新输入',
-      'minto': '不能小于{0}',
-      'maxto': '不能大于{0}',
-      // 'password': '密码只能包含ASCII字符',
-      'digits': '请输入数字',
-      'number': '请输入数字',
-      'url': '请输入URL地址',
-      'async': '异步校验失败，请检查'
-    },
+    rules: require('./rules'),
+    messages: require('./messages'),
 
     // UI 配置
-    helpClass: 'help-block',
-    wrapClass: 'form-group',
-    errorClass: 'has-error',
-
-    // 设置信息的显示
-    showMessage: function(params, text) {
-      var elem = params.elem;
-      var wrap = elem.data('wrap');
-      var help = elem.data('help');
+    wrapHook: function (elem) {
+      var wrap = elem.data('validate-wrap');
 
       if (!wrap) {
-        wrap = elem.closest('.' + this.option('wrapClass'));
-        elem.data('wrap', wrap);
+        wrap = elem.closest('.form-group');
+
+        if (wrap.length === 0) {
+          wrap = elem.parent();
+        }
+
+        elem.data('validate-wrap', wrap);
       }
+
+      return wrap;
+    },
+
+    helpHook: function (elem) {
+      var wrap,
+        help = elem.data('validate-help');
 
       if (!help) {
-        help = wrap.find('.' + this.option('helpClass'));
+        wrap = elem.data('validate-wrap');
+        help = wrap.find('.help-block');
+
         if (help.length === 0) {
-          help = $('<div class="' + this.option('helpClass') + '"/>').appendTo(wrap);
+          help = $('<span class="help-block"></span>').insertAfter(elem);
         }
-        elem.data('help', help);
+
+        elem.data('validate-help', help);
       }
 
-      wrap.addClass(this.option('errorClass'));
-      help.text(text || this.getMessage(params));
+      return help;
     },
-    customRules: {
-    },
-    customMessages: {
-    },
+
+    errorClass: 'has-error',
+
+    customRules: { },
+    customMessages: { },
+
     delegates: function () {
       var delegates = {
           'submit': function (e) {
@@ -301,9 +231,36 @@ var Validate = Widget.extend({
    * @param {String} [text] 错误信息
    */
   addError: function (params, text) {
-    this.option('showMessage').call(this, params, text);
+    var self = this,
+      elem = params.elem;
 
-    this.errorElements = this.errorElements.add(params.elem);
+    self.option('wrapHook')(elem)
+      .addClass(self.option('errorClass'));
+
+    self.option('helpHook')(elem)
+      .html(text || self.getMessage(params));
+
+    self.errorElements = self.errorElements.add(elem);
+  },
+
+  /**
+   * 移除错误信息
+   *
+   * @method removeError
+   *
+   * @param {Object} params 表单元素
+   */
+  removeError: function (params) {
+    var self = this,
+      elem = params.elem;
+
+    self.errorElements = self.errorElements.not(elem);
+
+    self.option('wrapHook')(elem)
+      .removeClass(self.option('errorClass'));
+
+    self.option('helpHook')(elem)
+      .empty();
   },
 
   /**
@@ -318,31 +275,6 @@ var Validate = Widget.extend({
       this.option(['messages', params.rule].join('/'));
 
     return text ? text.replace(/\{0\}/g, params.prop) : '';
-  },
-
-  /**
-   * 移除错误信息
-   *
-   * @method removeError
-   *
-   * @param {Object} params 表单元素
-   */
-  removeError: function (params) {
-    var self = this,
-      elem = params.elem,
-      wrap = elem.data('wrap'),
-      help = elem.data('help');
-
-    self.errorElements = self.errorElements.not(elem);
-
-    if (!wrap) {
-      wrap = elem.closest('.' + self.option('wrapClass'));
-      elem.data('wrap', wrap);
-    }
-    wrap.removeClass(self.option('errorClass'));
-
-    help && help.empty();
-
   }
 
 });
