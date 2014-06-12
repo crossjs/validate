@@ -19,6 +19,7 @@ var $ = require('$'),
 var Validate = Widget.extend({
 
   defaults: {
+    classPrefix: '',
     // 需要验证的元素
     elements: ['select', 'textarea', 'input[name]'],
     // 默认查找的属性
@@ -44,7 +45,6 @@ var Validate = Widget.extend({
 
       return wrap;
     },
-
     helpHook: function (elem) {
       var wrap,
         help = elem.data('validate-help');
@@ -54,7 +54,7 @@ var Validate = Widget.extend({
         help = wrap.find('.help-block');
 
         if (help.length === 0) {
-          help = $('<span class="help-block"></span>').insertAfter(elem);
+          help = $('<span class="help-block"></span>').appendTo(wrap);
         }
 
         elem.data('validate-help', help);
@@ -71,8 +71,10 @@ var Validate = Widget.extend({
     delegates: function () {
       var delegates = {
           'submit': function (e) {
-            e.preventDefault();
-            this.submit();
+            if (!e.isDefaultPrevented()) {
+              e.preventDefault();
+              this.submit();
+            }
           }
         },
         // 元素事件
@@ -82,7 +84,7 @@ var Validate = Widget.extend({
         key += ' ' + this.option('elements').join(',');
 
         delegates[key] = function (e) {
-          this.validateElem($(e.currentTarget));
+          this.validateElem($(e.currentTarget), false);
         };
       }
 
@@ -91,10 +93,33 @@ var Validate = Widget.extend({
   },
 
   setup: function () {
-    this.pendingCount = 0;
-    this.errorElements = $();
+    var self = this,
+      attributes = self.option('attributes'),
+      rules = self.option('rules'),
+      messages = self.option('messages');
 
-    this.element.attr({
+    // 混入自定义规则
+    $.each(self.option('customRules'), function (key, func) {
+      // 扩充 attributes
+      if ($.inArray(key, attributes) === -1) {
+        attributes.push(key);
+      }
+
+      // 扩充/替换 rules
+      rules[key] = func;
+    });
+
+    // 混入自定义错误信息，仅全局（非指定元素 name）错误信息
+    $.each(self.option('customMessages'), function (key, value) {
+      if (typeof value === 'string') {
+        messages[key] = value;
+      }
+    });
+
+    self.pendingCount = 0;
+    self.errorElements = $();
+
+    self.element.attr({
       novalidate: 'novalidate'
     });
   },
@@ -126,7 +151,7 @@ var Validate = Widget.extend({
       .filter(':enabled')
       .each(function () {
         if (this.name) {
-          self.validateElem($(this));
+          self.validateElem($(this), true);
         }
       });
 
@@ -137,9 +162,10 @@ var Validate = Widget.extend({
   /**
    * 验证单个元素
    * @param {Object} elem 表单元素
+   * @param {Boolean} form 是否来自全表校验请求
    * @method validateElem
    */
-  validateElem: function (elem) {
+  validateElem: function (elem, form) {
     var self = this,
       valid = true,
       rules,
@@ -160,7 +186,7 @@ var Validate = Widget.extend({
         return (valid = self.checkRule($.extend({
             rule: rule,
             prop: isNaN(prop) ? prop : +prop
-          },params)));
+          }, params)));
       }
     });
 
@@ -171,13 +197,16 @@ var Validate = Widget.extend({
     // 自定义的rules
     if ((rules = self.option(['customRules', params.name].join('/')))) {
       $.each(rules, function (rule, prop) {
-        return self.checkRule($.extend({
+        return (valid = self.checkRule($.extend({
             rule: rule,
             prop: isNaN(prop) ? prop : +prop
-          },params));
+          }, params)));
       });
     }
 
+    if (valid === true) {
+      self.fire('elemValid', elem, form);
+    }
   },
 
   /**
@@ -241,6 +270,8 @@ var Validate = Widget.extend({
       .html(text || self.getMessage(params));
 
     self.errorElements = self.errorElements.add(elem);
+
+    self.fire('elemError', elem);
   },
 
   /**
@@ -267,7 +298,7 @@ var Validate = Widget.extend({
    * 获取错误提示信息
    * @param {String} name 表单元素的name值
    * @param {String} rule 当前错误对应的校验规则
-   * @param {String} prop 校验的基准值，比如maxlength="3"中的”3“
+   * @param {String} prop 校验的基准值，比如 `maxlength="3"` 中的 `3`
    * @method getMessage
    */
   getMessage: function (params) {
