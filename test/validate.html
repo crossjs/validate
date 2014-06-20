@@ -398,8 +398,8 @@
             });
 
         form.submit();
-        equal( form.find('.help-block').text(), messages.url, '' );
-        equal( valid, false, '' );
+        equal( form.find('.help-block').text(), '', '' );
+        equal( valid, true, '' );
 
         input.val('abc');
         form.submit();

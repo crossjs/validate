@@ -43,7 +43,7 @@ define({
     return !isNaN(params.value);
   },
   url: function (params) {
-    return (/^(https?:)?\/\/([\w\d][\w\d\-]*(\.[\w\d][\w\d\-]*)*(\.\w{2,})+)(\/\S*)?$/i).test(params.value);
+    return !(/\S/).test(params.value) || (/^(https?:)?\/\/([a-z0-9][a-z0-9\-]*(\.[a-z0-9][a-z0-9\-]*)*(\.[a-z]{2,})+)(\/\S*)?$/i).test(params.value);
   },
   // 异步验证，如：从服务端验证、校验动态加载的图片尺寸
   async: function (params) {
@@ -57,7 +57,7 @@ define({
       }
       // 检查
       this.checkValidation();
-    });
+    }, params);
 
     return 'pending';
   }
