@@ -55,8 +55,10 @@ define({
       } else {
         this.addError(params);
       }
-      // 检查
-      this.checkValidation();
+      if (params.form) {
+        // 检查
+        this.checkValidation();
+      }
     }, params);
 
     return 'pending';

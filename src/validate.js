@@ -173,7 +173,8 @@ var Validate = Widget.extend({
       params = {
         elem: elem,
         name: elem.prop('name'),
-        value: elem.val()
+        value: elem.val(),
+        form: form
       };
 
     // 验证前，先移除错误信息
