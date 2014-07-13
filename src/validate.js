@@ -8,7 +8,7 @@ define(function (require, exports, module) {
 'use strict';
 
 var $ = require('$'),
-  Widget = require('widget');
+    Widget = require('widget');
 
 /**
  * Validate
@@ -70,20 +70,33 @@ var Validate = Widget.extend({
 
     delegates: function () {
       var delegates = {
-          'submit': function (e) {
-            if (!e.isDefaultPrevented()) {
-              e.preventDefault();
-              this.submit();
+            'submit': function (e) {
+              if (!e.isDefaultPrevented()) {
+                e.preventDefault();
+                this.submit();
+              }
             }
-          }
-        },
-        // 元素事件
-        key = this.option('eventType');
+          },
+          elements = this.option('elements').join(','),
+          // 元素事件
+          key = this.option('eventType');
+
+      // 清除错误提示
+      delegates['keydown ' + elements] = function (e) {
+        this.removeError({
+          elem: $(e.currentTarget)
+        });
+      };
+
+      // 清除错误提示
+      delegates['mousedown ' + elements] = function (e) {
+        this.removeError({
+          elem: $(e.currentTarget)
+        });
+      };
 
       if (key) {
-        key += ' ' + this.option('elements').join(',');
-
-        delegates[key] = function (e) {
+        delegates[key + ' ' + elements] = function (e) {
           this.validateElem($(e.currentTarget), false);
         };
       }
@@ -93,28 +106,7 @@ var Validate = Widget.extend({
   },
 
   setup: function () {
-    var self = this,
-      attributes = self.option('attributes'),
-      rules = self.option('rules'),
-      messages = self.option('messages');
-
-    // 混入自定义规则
-    $.each(self.option('customRules'), function (key, func) {
-      // 扩充 attributes
-      if ($.inArray(key, attributes) === -1) {
-        attributes.push(key);
-      }
-
-      // 扩充/替换 rules
-      rules[key] = func;
-    });
-
-    // 混入自定义错误信息，仅全局（非指定元素 name）错误信息
-    $.each(self.option('customMessages'), function (key, value) {
-      if (typeof value === 'string') {
-        messages[key] = value;
-      }
-    });
+    var self = this;
 
     self.pendingCount = 0;
     self.errorElements = $();
@@ -167,8 +159,8 @@ var Validate = Widget.extend({
    */
   validateElem: function (elem, form) {
     var self = this,
-      valid = true,
-      rules,
+        valid = true,
+        rules,
 
       params = {
         elem: elem,
@@ -264,10 +256,10 @@ var Validate = Widget.extend({
     var self = this,
       elem = params.elem;
 
-    self.option('wrapHook')(elem)
+    self.option('wrapHook').call(self, elem)
       .addClass(self.option('errorClass'));
 
-    self.option('helpHook')(elem)
+    self.option('helpHook').call(self, elem)
       .html(text || self.getMessage(params));
 
     self.errorElements = self.errorElements.add(elem);

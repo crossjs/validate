@@ -50,11 +50,12 @@ define({
     this.pendingCount++;
 
     params.prop.call(this, function (success) {
-      if (success) {
-        this.pendingCount--;
-      } else {
+      this.pendingCount--;
+
+      if (!success) {
         this.addError(params);
       }
+
       if (params.form) {
         // 检查
         this.checkValidation();
