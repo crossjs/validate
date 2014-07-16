@@ -106,7 +106,30 @@ var Validate = Widget.extend({
   },
 
   setup: function () {
-    var self = this;
+    var self = this,
+      attributes = self.option('attributes'),
+      rules = self.option('rules'),
+      messages = self.option('messages');
+
+    // 混入自定义规则，仅全局（非指定元素 name）规则
+    $.each(self.option('customRules'), function (key, func) {
+      if (typeof func === 'function') {
+        // 扩充 attributes
+        if ($.inArray(key, attributes) === -1) {
+          attributes.push(key);
+        }
+
+        // 扩充/替换 rules
+        rules[key] = func;
+      }
+    });
+
+    // 混入自定义错误信息，仅全局（非指定元素 name）错误信息
+    $.each(self.option('customMessages'), function (key, value) {
+      if (typeof value === 'string') {
+        messages[key] = value;
+      }
+    });
 
     self.pendingCount = 0;
     self.errorElements = $();
