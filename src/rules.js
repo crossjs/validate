@@ -22,19 +22,19 @@ define({
     return len ? (len <= params.prop) : true;
   },
   min: function (params) {
-    return parseInt(params.value, 10) >= params.prop;
+    return isNaN(params.value) || (+params.value >= params.prop);
   },
   max: function (params) {
-    return parseInt(params.value, 10) <= params.prop;
+    return isNaN(params.value) || (+params.value <= params.prop);
   },
   equalto: function (params) {
     return params.value === this.$('[name="' + params.prop + '"]').val();
   },
   minto: function (params) {
-    return parseInt(params.value, 10) >= parseInt(this.$('[name="' + params.prop + '"]').val(), 10);
+    return +params.value >= +this.$('[name="' + params.prop + '"]').val();
   },
   maxto: function (params) {
-    return parseInt(params.value, 10) <= parseInt(this.$('[name="' + params.prop + '"]').val(), 10);
+    return +params.value <= +this.$('[name="' + params.prop + '"]').val();
   },
   digits: function (params) {
     return !/\D/.test(params.value);

@@ -21,9 +21,9 @@ var Validate = Widget.extend({
   defaults: {
     classPrefix: '',
     // 需要验证的元素
-    elements: ['select', 'textarea', 'input[name]'],
+    elements: ['select[name]', 'textarea[name]', 'input[name]'],
     // 默认查找的属性
-    attributes: ['required', 'pattern', 'minlength', 'maxlength', 'min', 'max', 'equalto', 'minto', 'maxto', 'digits', 'number', 'url', 'async'],
+    attributes: ['required', 'pattern', 'minlength', 'maxlength', 'digits', 'number', 'url', 'min', 'max', 'equalto', 'minto', 'maxto', 'async'],
     // 预置的校验函数
     // params: {elem, name, value, rule, prop}
     rules: require('./rules'),
@@ -165,9 +165,7 @@ var Validate = Widget.extend({
     self.$(self.option('elements').join(','))
       .filter(':enabled')
       .each(function () {
-        if (this.name) {
-          self.validateElem($(this), true);
-        }
+        self.validateElem($(this), true);
       });
 
     // 检查验证
@@ -185,12 +183,12 @@ var Validate = Widget.extend({
         valid = true,
         rules,
 
-      params = {
-        elem: elem,
-        name: elem.prop('name'),
-        value: elem.val(),
-        form: form
-      };
+    params = {
+      elem: elem,
+      name: elem.prop('name'),
+      value: elem.val(),
+      form: form
+    };
 
     // 验证前，先移除错误信息
     self.removeError(params);
