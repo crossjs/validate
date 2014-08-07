@@ -14,18 +14,39 @@ var $ = require('$'),
  * Validate
  * 目前支持单个表单
  * @class Validate
+ * @extend Widget
  * @constructor
  */
 var Validate = Widget.extend({
 
   defaults: {
     classPrefix: '',
-    // 需要验证的元素
+
+    /**
+     * 需要验证的元素
+     * 
+     * @attribute elements
+     * @type {Array}
+     * @default ['select[name]', 'textarea[name]', 'input[name]']
+     */
     elements: ['select[name]', 'textarea[name]', 'input[name]'],
-    // 默认查找的属性
+
+    /**
+     * 默认查找的属性
+     * 
+     * @attribute attributes
+     * @type {Array}
+     * @default ['required', 'pattern', 'minlength', 'maxlength', 'digits', 'number', 'url', 'min', 'max', 'equalto', 'minto', 'maxto', 'async']
+     */
     attributes: ['required', 'pattern', 'minlength', 'maxlength', 'digits', 'number', 'url', 'min', 'max', 'equalto', 'minto', 'maxto', 'async'],
     // 预置的校验函数
     // params: {elem, name, value, rule, prop}
+    /**
+     * 校验规则
+     * 
+     * @attribute rules
+     * @type {Object}
+     */
     rules: require('./rules'),
     messages: require('./messages'),
 
